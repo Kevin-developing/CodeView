@@ -124,6 +124,38 @@ public class CodeView extends AppCompatMultiAutoCompleteTextView implements Find
     private final SortedMap<Integer, Integer> mErrorHashSet = new TreeMap<>();
     private final Map<Pattern, Integer> mSyntaxPatternMap = new HashMap<>();
 
+
+     public interface OnTextChangedListener {
+        void onTextChanged(String text);
+    }
+
+    private OnTextChangedListener onTextChangedListener;
+
+    public void setOnTextChangedListener(OnTextChangedListener listener) {
+        this.onTextChangedListener = listener;
+    }
+
+    private final TextWatcher mEditorTextWatcher = new TextWatcher() {
+
+        // The other TextWatcher methods...
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+            if(!highlightWhileTextChanging && modified) {
+                cancelHighlighterRender();
+
+                if (mSyntaxPatternMap.size() > 0) {
+                    convertTabs(getEditableText(), start, count);
+                    mUpdateHandler.postDelayed(mUpdateRunnable, mUpdateDelayTime);
+                }
+            }
+
+            if (onTextChangedListener != null) {
+                onTextChangedListener.onTextChanged(editable.toString());
+            }
+        }
+    };
+
     public CodeView(Context context) {
         super(context);
         initEditorView();
@@ -924,4 +956,14 @@ public class CodeView extends AppCompatMultiAutoCompleteTextView implements Find
         else if (indentationEnds.contains(firstChar)) return -tabLength;
         return 0;
     }
+    public interface OnTextChangedListener {
+    void onTextChanged(String text);
+}
+// Inside CodeView class
+private OnTextChangedListener onTextChangedListener;
+
+public void setOnTextChangedListener(OnTextChangedListener listener) {
+    this.onTextChangedListener = listener;
+}
+
 }
